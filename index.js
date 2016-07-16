@@ -1,14 +1,18 @@
+var moment = require('moment');
+var express = require('express');
+
 var config = require('./config');
 var capture = require('./capture');
 
-var moment = require('moment');
-var express = require('express');
+
 var app = express();
 
 
 // Some sanity checking to avoid issues later on
 if (!config.cams)
 	config.cams = [];
+
+capture.init(config.cams);
 
 
 app.get('/', function(req, res)
@@ -28,9 +32,14 @@ app.get('/capture', function(req, res)
 
 	for (var camId in config.cams)
 	{
-		cams.push(camId);
-		capture.start(camId, config.cams[camId], now);
+		if (config.cams.hasOwnProperty(camId))
+		{
+			cams.push(camId);
+			capture.start(camId, config.cams[camId], now);
+		}
 	}
+
+	console.log('Started capture for: ' + cams.join(', '));
 
 	res.send(JSON.stringify(cams));
 });
@@ -43,10 +52,13 @@ app.get('/capture/:camId', function(req, res)
 	if (config.cams.hasOwnProperty(camId))
 	{
 		capture.start(config.cams[camId], moment());
+
+		console.log('Started capture for: ' + camId);
 		res.send(JSON.stringify([camId]));
 	}
 	else
 	{
+		console.log('Cam not found: ' + camId);
 		res.sendStatus(404);
 	}
 });

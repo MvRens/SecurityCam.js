@@ -1,0 +1,12 @@
+Getting node-gyp to work on Windows (required for buildtools, used by mjpeg-consumer):
+
+https://github.com/nodejs/node-gyp/issues/629#issuecomment-153196245
+
+
+
+I couldn't get the 2015 build tools to work, but with 2013 already installed
+it worked using:
+
+set VCTargetsPath=C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120
+set VCTargetsPath12=C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120
+npm config set msvs_version 2013
