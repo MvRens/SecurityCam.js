@@ -24,6 +24,9 @@ Refer to config.sample.js for the syntax.
 | time | How long this camera will be captured, in milliseconds. If not specified, defaultTime is used. |
 | output | The output format used. This is pluggable and corresponds to the output-*.js files. For example, 'ffmpeg', 'mjpeg-split' or 'raw'. |
 | outputOptions | Options depending on the output format used. Refer to the specific output configuration below. |
+| before | An array of commands to run before starting the capture. Refer to the Commands section below. |
+| during | An array of commands to run when capture has started. Waits for the first response from the camera before running. |
+| after | An array of commands to run after the capture. Will wait for 'during' commands to finish. |
 
 
 ##### Output - Variables
@@ -67,3 +70,39 @@ Uses [ffmpeg](https://ffmpeg.org/) to transcode the input stream into another ou
 | inputFormat | The input format, for example 'mjpeg'. For the full list, run 'ffmpeg -formats' and look for formats with the 'D' column. |
 | outputFormat | The output format, for example 'avi'. For the full list, run 'ffmpeg -formats' and look for formats with the 'E' column. |
 | videoCodec | The output video codec, for example 'libx264'. For the full list, run 'ffmpeg -codecs' and look for formats with the 'V' column. For some codecs (like x264) you need to specify the encoder instead of the codec identifier, which are listed after the description as '(encoders: ...)'. |
+
+
+##### Commands
+Each command will be executed in order and consists of an 'url' and a 'wait' time after. Both are optional.
+
+Example usage: rotate the camera to a preset location when starting, go to further presets while it is capturing and return back to the first location afterwards.
+
+```javascript
+before:
+[
+	{
+		url: foscam.gotoPreset('10.138.1.10', 2, 'viewer', 'verysecure'),
+	}
+],
+
+after:
+[
+	{
+		url: foscam.gotoPreset('10.138.1.10', 1, 'viewer', 'verysecure'),
+	}
+],
+
+during:
+[
+	{
+		wait: 5000
+	},
+	{
+		url: foscam.gotoPreset('10.138.1.10', 3, 'viewer', 'verysecure'),
+		wait: 5000
+	},
+	{
+		url: foscam.gotoPreset('10.138.1.10', 4, 'viewer', 'verysecure')
+	}
+]
+```
