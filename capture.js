@@ -87,6 +87,8 @@ module.exports =
 		var timer = null;
 		var req = null;
 		var output = new (require('./output-' + cam.output))(camId, cam.outputOptions, now);
+		var duringDone = false;
+		var queueAfter = false;
 
 
 		runCommands(cam.before, 'before', function()
@@ -105,19 +107,32 @@ module.exports =
 					output = null;
 				}
 
-				runCommands(cam.after, 'after', function() { });
+				// If the stream is cut short, or the time is configured
+				// to be less than the duration of the 'during' commands,
+				// queue it up.
+				if (duringDone)
+					runCommands(cam.after, 'after', function() { });
+				else
+					queueAfter = true;
 			};
-
 
 			req = http.request(cam.url, function(res)
 			{
-				runCommands(cam.during, 'during', function() { })
+				runCommands(cam.during, 'during', function()
+				{
+					if (queueAfter)
+						runCommands(cam.after, 'after', function() { });
+					else
+						duringDone = true;
+				});
+
 
 				timer = setTimeout(function()
 				{
 					req.abort();
 					cleanup();
 				}, cam.time || config.defaultTime || 10000);
+
 
 				res.on('end', function()
 				{
