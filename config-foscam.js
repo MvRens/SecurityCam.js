@@ -57,6 +57,19 @@ foscam.mjpegStream = function(host, username, password, rate, resolution)
 	return url.format(urlObject);
 }
 
+foscam.rtspStream = function(host, username, password)
+{
+	var urlObject = {
+		protocol: 'rtsp:',
+		host: host
+	};
+
+	if (typeof(username) !== 'undefined' || typeof(password) !== 'undefined')
+		urlObject.auth = (username || '') + ':' + (password || '');
+
+	return url.format(urlObject);
+}
+
 foscam.gotoPreset = function(host, presetNumber, username, password)
 {
 	if (presetNumber < 1) presetNumber = 1;
