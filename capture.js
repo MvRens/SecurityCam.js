@@ -76,7 +76,7 @@ module.exports =
 		{
 			if (cams.hasOwnProperty(camId))
 			{
-				require('./output-' + cams[camId].output);
+				require('./processor-' + cams[camId].processor);
 			}
 		}
 	},
@@ -84,71 +84,38 @@ module.exports =
 
 	start: function(camId, cam, now)
 	{
-		var timer = null;
-		var req = null;
-		var output = new (require('./output-' + cam.output))(camId, cam.outputOptions, now);
-		var duringDone = false;
-		var queueAfter = false;
+		var processor = new (require('./processor-' + cam.processor))(camId, cam, now);
+		var duringCommandsDone = false;
+		var queueAfterCommand = false;
 
 
 		runCommands(cam.before, 'before', function()
 		{
-			var cleanup = function()
-			{
-				if (timer !== null)
-				{
-					clearTimeout(timer);
-					timer = null;
-				}
-
-				if (output !== null)
-				{
-					output.cleanup();
-					output = null;
-				}
-
-				// If the stream is cut short, or the time is configured
-				// to be less than the duration of the 'during' commands,
-				// queue it up.
-				if (duringDone)
-					runCommands(cam.after, 'after', function() { });
-				else
-					queueAfter = true;
-			};
-
-			req = http.request(cam.url, function(res)
+			processor.on('start', function()
 			{
 				runCommands(cam.during, 'during', function()
 				{
-					if (queueAfter)
+					// Check if the processor has already finished and the
+					// 'after' commands should be run immediately.
+					if (queueAfterCommand)
 						runCommands(cam.after, 'after', function() { });
 					else
-						duringDone = true;
+						duringCommandsDone = true;
 				});
-
-
-				timer = setTimeout(function()
-				{
-					req.abort();
-					cleanup();
-				}, cam.time || config.defaultTime || 10000);
-
-
-				res.on('end', function()
-				{
-					cleanup();
-				});
-
-				res.pipe(output.getStream());
 			});
 
-			req.on('error', function(e)
+			processor.on('end', function()
 			{
-				console.log(e);
-				cleanup();
+				// If the stream is cut short, or the time is configured
+				// to be less than the duration of the 'during' commands,
+				// queue it up.
+				if (duringCommandsDone)
+					runCommands(cam.after, 'after', function() { });
+				else
+					queueAfterCommand = true;
 			});
 
-			req.end();
+			processor.run();
 		});
 	}
 };
