@@ -69,7 +69,8 @@ HTTPFFMPEGProcessor.prototype.cleanup = function()
 
 	fs.rename(this.tempFilename, this.filename, function(err)
 	{
-		logger.error('Could not move ' + this.tempFilename + ' to ' + this.filename + ': ' + err.message);
+		if (err)
+			logger.error('Could not move ' + this.tempFilename + ' to ' + this.filename + ': ' + err);
 	});
 }
 

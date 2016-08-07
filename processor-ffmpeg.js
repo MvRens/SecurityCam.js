@@ -30,7 +30,9 @@ FFMPEGProcessor.prototype.run = function()
 	{
 		fs.rename(tempFilename, filename, function(err)
 		{
-			logger.error('Could not move ' + tempFilename + ' to ' + filename + ': ' + err.message);
+			if (err)
+				logger.error('Could not move ' + tempFilename + ' to ' + filename + ': ' + err);
+
 			self.doEnd();
 		});
 	}
