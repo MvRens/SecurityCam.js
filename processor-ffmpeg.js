@@ -39,7 +39,8 @@ FFMPEGProcessor.prototype.run = function()
 	var command = new FfmpegCommand();
 	command
 		.input(this.cam.options.input)
-		.inputOptions(['-t ' + this.cam.options.time]);
+		.inputOptions(['-t ' + this.cam.options.time,
+		               '-rtsp_transport tcp']);
 
 	if (typeof(this.cam.options.inputFormat) !== 'undefined')
 	{
