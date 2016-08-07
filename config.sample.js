@@ -8,6 +8,7 @@ config.cams =
 	frontdoor:
 	{
 		processor: 'ffmpeg',
+		group: 'doors',
 		options:
 		{
 			// You can specify any URL string here, the Foscam helper just makes it easier
@@ -28,6 +29,7 @@ config.cams =
 	backdoor:
 	{
 		processor: 'mjpeg-split',
+		groups: ['doors', 'back'],
 		options:
 		{
 			// You can use username:password@ in the URL to log in with basic

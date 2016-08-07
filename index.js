@@ -12,7 +12,9 @@ var serverPort = 0;
 var config = null;
 var configError = null;
 
-var loadConfig = function()
+
+
+function loadConfig()
 {
 	try
 	{
@@ -65,6 +67,17 @@ var loadConfig = function()
 	}
 }
 
+
+function inGroup(groupId, cam)
+{
+	if (cam.group === groupId)
+		return true;
+
+	if (cam.groups && cam.groups.indexOf(groupId) > -1)
+		return true;
+
+	return false;
+}
 
 
 app.get('/', function(req, res)
@@ -121,11 +134,54 @@ app.get('/capture', function(req, res)
 		if (alreadyRunning.length > 0)
 			logger.info('Capture already running for: ' + alreadyRunning.join(', '));
 
-		res.send(JSON.stringify(cams));
+		res.send(JSON.stringify(
+		{
+			started: cams,
+			alreadyRunning: alreadyRunning
+		}));
 	}
 	else
 	{
-		res.status(500).send({ error: 'See / for more information' });
+		res.status(500).send({ error: 'Error loading configuration. See status page for more information' });
+	}
+});
+
+
+app.get('/capture/group/:groupId', function(req, res)
+{
+	if (config !== null)
+	{
+		var groupId = req.params.groupId;
+		var now = moment();
+		var cams = [];
+		var alreadyRunning = [];
+
+		for (var camId in config.cams)
+		{
+			if (config.cams.hasOwnProperty(camId) && inGroup(groupId, config.cams[camId]))
+			{
+				if (capture.start(camId, config.cams[camId], now))
+					cams.push(camId);
+				else
+					alreadyRunning.push(camId);
+			}
+		}
+
+		if (cams.length > 0)
+			logger.info('Started capture for: ' + cams.join(', '));
+
+		if (alreadyRunning.length > 0)
+			logger.info('Capture already running for: ' + alreadyRunning.join(', '));
+
+		res.send(JSON.stringify(
+		{
+			started: cams,
+			alreadyRunning: alreadyRunning
+		}));
+	}
+	else
+	{
+		res.status(500).send({ error: 'Error loading configuration. See status page for more information' });
 	}
 });
 
@@ -139,12 +195,23 @@ app.get('/capture/:camId', function(req, res)
 		if (config.cams.hasOwnProperty(camId))
 		{
 			if (capture.start(camId, config.cams[camId], moment()))
+			{
 				logger.info('Started capture for: ' + camId);
+
+				res.send(JSON.stringify(
+				{
+					started: [camId]
+				}));
+			}
 			else
+			{
 				logger.info('Capture already running for: ' + camId);
 
-
-			res.send(JSON.stringify([camId]));
+				res.send(JSON.stringify(
+				{
+					alreadyRunning: [camId]
+				}));
+			}
 		}
 		else
 		{
@@ -154,7 +221,7 @@ app.get('/capture/:camId', function(req, res)
 	}
 	else
 	{
-		res.status(500).send({ error: 'See / for more information' });
+		res.status(500).send({ error: 'Error loading configuration. See status page for more information' });
 	}
 });
 
