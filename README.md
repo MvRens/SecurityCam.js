@@ -1,4 +1,9 @@
 # SecurityCam.js
+Provides a Node.js ReST service to start capturing IP cameras for a certain amount of time. Designed to be used in a domotics system with motion sensors (for example, [Domoticz](https://domoticz.com/)). Supports streaming video and server-pushed MJPEG over HTTP, as well as any stream FFmpeg can handle (tested with H.264 over RTSP for example). Also supports timed HTTP calls before, during and after capturing to, for example, control the camera's PTZ (Pan-Tilt-Zoom).
+
+Implemented as a service instead of an on-demand script to minimize delays when running on a Raspberry Pi.
+
+
 #### URL's
 | Path | Description |
 | --- | --- |
@@ -8,9 +13,52 @@
 | /capture/id | Starts capturing the camera with the specified id as defined in config.js. |
 <br /><br />
 
+
+#### Installing
+
+Make sure you have a recent version of Node.js installed. Get the source, put it in a convenient location and run `npm update` in the directory where you just put the source. Make sure you have a config.js (see the Configuration section for more information) and run using `node index.js` to give it a test run.
+
+Navigate to `http://localhost:5705/` in your browser (assuming you did not modify the port number) to show the status output.
+
+#### Installing as a service
+
+You can use tools like [forever](https://github.com/foreverjs/forever) which provide excellent recovery options. Alternatively, if your system supports [systemd](https://en.wikipedia.org/wiki/Systemd) (like Raspbian) you can create a file `/etc/systemd/system/securitycam.service` with the following content (correct the paths and user if necessary):
+
+```ini
+[Unit]
+Description=SecurityCam server
+
+[Service]
+ExecStart=/usr/local/bin/node /srv/securitycam/index.js
+Restart=always
+RestartSec=10                       # Restart service after 10 seconds if node service crashes
+StandardOutput=syslog               # Output to syslog
+StandardError=syslog                # Output to syslog
+SyslogIdentifier=securitycam
+User=pi
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Then enable and start the server:
+
+```bash
+systemctl enable securitycam.service
+systemctl start securitycam.service
+```
+
+
+Messages will be logged to syslog with the identifier as specified in the service file.
+<br /><br />
+
+
 #### Configuration
 
-Refer to config.sample.js for the syntax.
+Create a file called config.js or rename the sample file. Refer to config.sample.js for the syntax.
+
+Changes to the configuration file will automatically be reloaded. If an error occurred it will be logged (to either the console when running manually, or syslog when running as a systemd service).
+
 
 ##### Basic
 | Name | Description |
