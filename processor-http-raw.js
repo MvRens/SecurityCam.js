@@ -15,10 +15,13 @@ util.inherits(HTTPRawProcessor, BaseHTTPStreamProcessor);
 
 HTTPRawProcessor.prototype.run = function()
 {
-	this.output = fs.createWriteStream(helpers.createVariableFilename(this.cam.options.filename, this.now,
+	this.filename = helpers.createVariableFilename(this.cam.options.filename, this.now,
 	{
 		camId: this.camId
-	}));
+	});
+
+	this.tempFilename = this.filename + '.recording';
+	this.output = fs.createWriteStream(this.tempFilename);
 
 	HTTPRawProcessor.super_.prototype.run.call(this);
 }
@@ -41,6 +44,11 @@ HTTPRawProcessor.prototype.cleanup = function()
 		this.output.end();
 		this.output = null;
 	}
+
+	fs.rename(this.tempFilename, this.filename, function(err)
+	{
+		console.log('Error: could not move ' + this.tempFilename + ' to ' + this.filename + ': ' + err.message);
+	});
 }
 
 module.exports = HTTPRawProcessor;

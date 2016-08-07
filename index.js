@@ -51,7 +51,7 @@ app.get('/capture/:camId', function(req, res)
 
 	if (config.cams.hasOwnProperty(camId))
 	{
-		capture.start(config.cams[camId], moment());
+		capture.start(camId, config.cams[camId], moment());
 
 		console.log('Started capture for: ' + camId);
 		res.send(JSON.stringify([camId]));

@@ -20,6 +20,22 @@ util.inherits(FFMPEGProcessor, BaseProcessor);
 FFMPEGProcessor.prototype.run = function()
 {
 	var self = this;
+	var filename = helpers.createVariableFilename(this.cam.options.filename, this.now,
+	{
+		camId: this.camId
+	});
+
+	var tempFilename = filename + '.recording';
+	var cleanup = function()
+	{
+		fs.rename(tempFilename, filename, function(err)
+		{
+			console.log('Error: could not move ' + tempFilename + ' to ' + filename + ': ' + err.message);
+			self.doEnd();
+		});
+	}
+
+
 	var command = new FfmpegCommand();
 	command
 		.input(this.cam.options.input)
@@ -33,16 +49,19 @@ FFMPEGProcessor.prototype.run = function()
 	}
 
 	command
-		.output(helpers.createVariableFilename(this.cam.options.filename, this.now,
-		{
-			camId: this.camId
-		}))
+		.output(tempFilename)
 		.videoCodec(this.cam.options.videoCodec)
 		.outputFormat(this.cam.options.outputFormat);
 
+	command.on('error', function(err, stdout, stderr)
+	{
+		console.log('Error: FFmpeg output:' + err.message);
+		cleanup();
+	});
+
 	command.on('end', function()
 	{
-		self.doEnd();
+		cleanup();
 	});
 
 	self.doStart();
