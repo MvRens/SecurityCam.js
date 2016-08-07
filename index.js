@@ -102,17 +102,24 @@ app.get('/capture', function(req, res)
 	{
 		var now = moment();
 		var cams = [];
+		var alreadyRunning = [];
 
 		for (var camId in config.cams)
 		{
 			if (config.cams.hasOwnProperty(camId))
 			{
-				cams.push(camId);
-				capture.start(camId, config.cams[camId], now);
+				if (capture.start(camId, config.cams[camId], now))
+					cams.push(camId);
+				else
+					alreadyRunning.push(camId);
 			}
 		}
 
-		logger.info('Started capture for: ' + cams.join(', '));
+		if (cams.length > 0)
+			logger.info('Started capture for: ' + cams.join(', '));
+
+		if (alreadyRunning.length > 0)
+			logger.info('Capture already running for: ' + alreadyRunning.join(', '));
 
 		res.send(JSON.stringify(cams));
 	}
@@ -131,9 +138,12 @@ app.get('/capture/:camId', function(req, res)
 
 		if (config.cams.hasOwnProperty(camId))
 		{
-			capture.start(camId, config.cams[camId], moment());
+			if (capture.start(camId, config.cams[camId], moment()))
+				logger.info('Started capture for: ' + camId);
+			else
+				logger.info('Capture already running for: ' + camId);
 
-			logger.info('Started capture for: ' + camId);
+
 			res.send(JSON.stringify([camId]));
 		}
 		else

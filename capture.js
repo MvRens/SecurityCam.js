@@ -3,6 +3,9 @@ var stream = require('stream');
 var logger = require('./logger');
 
 
+var runningCams = {};
+
+
 function runCommand(command, displayName, callback)
 {
 	var wait = function()
@@ -83,9 +86,21 @@ module.exports =
 
 	start: function(camId, cam, now)
 	{
+		if (runningCams[camId] === true)
+			return false;
+
+
+		runningCams[camId] = true;
+
 		var processor = new (require('./processor-' + cam.processor))(camId, cam, now);
 		var duringCommandsDone = false;
 		var queueAfterCommand = false;
+
+
+		var unlockCam = function()
+		{
+			runningCams[camId] = false;
+		};
 
 
 		runCommands(cam.before, 'before', function()
@@ -97,7 +112,7 @@ module.exports =
 					// Check if the processor has already finished and the
 					// 'after' commands should be run immediately.
 					if (queueAfterCommand)
-						runCommands(cam.after, 'after', function() { });
+						runCommands(cam.after, 'after', unlockCam);
 					else
 						duringCommandsDone = true;
 				});
@@ -109,12 +124,14 @@ module.exports =
 				// to be less than the duration of the 'during' commands,
 				// queue it up.
 				if (duringCommandsDone)
-					runCommands(cam.after, 'after', function() { });
+					runCommands(cam.after, 'after', unlockCam);
 				else
 					queueAfterCommand = true;
 			});
 
 			processor.run();
 		});
+
+		return true;
 	}
 };
