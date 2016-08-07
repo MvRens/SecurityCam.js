@@ -225,27 +225,15 @@ app.get('/capture/:camId', function(req, res)
 	}
 });
 
-var watcher = chokidar.watch('./config.js');
-var firstLoad = true;
+loadConfig();
+
+var watcher = chokidar.watch('./config.js',
+{
+	ignoreInitial: true
+});
 
 watcher.on('all', function()
 {
-	if (!firstLoad)
-		logger.verbose('Configuration change detected, reloading...');
-
+	logger.verbose('Configuration change detected, reloading...');
 	loadConfig();
-	firstLoad = false;
 });
-
-
-// It looks like the add event from chokidar will always be fired immediately,
-// at least on Windows, but I couldn't find anything in the documentation so
-// let's not make that assumption and double-check.
-setTimeout(function()
-{
-	if (firstLoad)
-	{
-		loadConfig();
-		firstLoad = false;
-	}
-}, 1000);

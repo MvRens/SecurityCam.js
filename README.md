@@ -30,6 +30,7 @@ Description=SecurityCam server
 
 [Service]
 ExecStart=/usr/local/bin/node /srv/securitycam/index.js
+WorkingDirectory=/srv/securitycam
 Restart=always
 RestartSec=10                       # Restart service after 10 seconds if node service crashes
 StandardOutput=syslog               # Output to syslog
