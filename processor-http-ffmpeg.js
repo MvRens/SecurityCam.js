@@ -26,7 +26,7 @@ HTTPFFMPEGProcessor.prototype.run = function()
 		camId: this.camId
 	});
 
-	this.tempFilename = filename + '.recording';
+	this.tempFilename = this.filename + '.recording';
 
 
 	var command = new FfmpegCommand();
