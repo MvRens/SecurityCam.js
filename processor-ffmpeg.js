@@ -1,10 +1,10 @@
 var fs = require('fs');
 var util = require('util');
 var stream = require('stream');
-
 var FfmpegCommand = require('fluent-ffmpeg');
 
 var helpers = require('./helpers');
+var logger = require('./logger');
 var BaseProcessor = require('./baseprocessor');
 
 
@@ -30,7 +30,7 @@ FFMPEGProcessor.prototype.run = function()
 	{
 		fs.rename(tempFilename, filename, function(err)
 		{
-			console.log('Error: could not move ' + tempFilename + ' to ' + filename + ': ' + err.message);
+			logger.error('Could not move ' + tempFilename + ' to ' + filename + ': ' + err.message);
 			self.doEnd();
 		});
 	}
@@ -55,7 +55,7 @@ FFMPEGProcessor.prototype.run = function()
 
 	command.on('error', function(err, stdout, stderr)
 	{
-		console.log('Error: FFmpeg output:' + err.message);
+		logger.error('FFmpeg output:' + err.message);
 		cleanup();
 	});
 

@@ -1,5 +1,6 @@
 var util = require('util');
 var http = require('http');
+var logger = require('./logger');
 
 var BaseProcessor = require('./baseprocessor');
 
@@ -51,7 +52,7 @@ BaseHTTPStreamProcessor.prototype.run = function()
 
 	req.on('error', function(e)
 	{
-		console.log(e);
+		logger.error(e);
 		doCleanup();
 	});
 

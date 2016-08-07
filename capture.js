@@ -1,7 +1,6 @@
 var http = require('http');
 var stream = require('stream');
-
-var config = require('./config');
+var logger = require('./logger');
 
 
 function runCommand(command, displayName, callback)
@@ -18,7 +17,7 @@ function runCommand(command, displayName, callback)
 
 	if (command.url)
 	{
-		console.log('Running command: ' + (command.displayName ? command.displayName : displayName));
+		logger.verbose('Running command: ' + (command.displayName ? command.displayName : displayName));
 
 		req = http.request(command.url, function(res)
 		{
@@ -28,7 +27,7 @@ function runCommand(command, displayName, callback)
 
 		req.on('error', function(e)
 		{
-			console.log(e);
+			logger.error(e);
 			wait();
 		});
 

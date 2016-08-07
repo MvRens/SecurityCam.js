@@ -2,6 +2,7 @@ var fs = require('fs');
 var util = require('util');
 
 var helpers = require('./helpers');
+var logger = require('./logger');
 var BaseHTTPStreamProcessor = require('./basehttpstreamprocessor');
 
 function HTTPRawProcessor()
@@ -47,7 +48,7 @@ HTTPRawProcessor.prototype.cleanup = function()
 
 	fs.rename(this.tempFilename, this.filename, function(err)
 	{
-		console.log('Error: could not move ' + this.tempFilename + ' to ' + this.filename + ': ' + err.message);
+		logger.error('Could not move ' + this.tempFilename + ' to ' + this.filename + ': ' + err.message);
 	});
 }
 

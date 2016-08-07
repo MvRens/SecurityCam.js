@@ -5,6 +5,7 @@ var stream = require('stream');
 var FfmpegCommand = require('fluent-ffmpeg');
 
 var helpers = require('./helpers');
+var logger = require('./logger');
 var BaseHTTPStreamProcessor = require('./basehttpstreamprocessor');
 
 
@@ -43,7 +44,7 @@ HTTPFFMPEGProcessor.prototype.run = function()
 
 	command.on('error', function(err, stdout, stderr)
 	{
-		console.log('Error: FFmpeg output:' + err.message);
+		logger.error('FFmpeg output:' + err.message);
 	});
 
 	command.run();
@@ -68,7 +69,7 @@ HTTPFFMPEGProcessor.prototype.cleanup = function()
 
 	fs.rename(this.tempFilename, this.filename, function(err)
 	{
-		console.log('Error: could not move ' + this.tempFilename + ' to ' + this.filename + ': ' + err.message);
+		logger.error('Could not move ' + this.tempFilename + ' to ' + this.filename + ': ' + err.message);
 	});
 }
 
